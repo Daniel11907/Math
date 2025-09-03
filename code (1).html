@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Medal Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+  />
+  <style>
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+  </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8">
+  <div class="max-w-7xl mx-auto">
+    <h1
+      class="text-3xl sm:text-4xl font-bold text-white text-center mb-6 sm:mb-8"
+    >
+      Math Token Mga Ninja
+    </h1>
+
+    <!-- Table Section -->
+    <div class="card rounded-xl p-4 sm:p-6 mb-8 overflow-x-auto">
+      <table class="w-full text-white table-auto min-w-[600px]">
+        <thead>
+          <tr class="border-b border-white/20">
+            <th class="py-2 px-3 sm:py-3 sm:px-4 text-left text-sm sm:text-base">
+              NAME
+            </th>
+            <th class="py-2 px-3 sm:py-3 sm:px-4 text-center text-sm sm:text-base">
+              GOLD
+            </th>
+            <th class="py-2 px-3 sm:py-3 sm:px-4 text-center text-sm sm:text-base">
+              SILVER
+            </th>
+            <th class="py-2 px-3 sm:py-3 sm:px-4 text-center text-sm sm:text-base">
+              BRONZE
+            </th>
+            <th class="py-2 px-3 sm:py-3 sm:px-4 text-center text-sm sm:text-base">
+              TOTAL (pesos)
+            </th>
+            <th class="py-2 px-3 sm:py-3 sm:px-4 text-center text-sm sm:text-base">
+              STATUS
+            </th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8">
+      <div class="card rounded-xl p-4 sm:p-6 text-center">
+        <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 sm:mb-2">
+          Total Participants
+        </h3>
+        <p
+          class="text-2xl sm:text-3xl font-bold text-yellow-300"
+          id="total-participants"
+        ></p>
+      </div>
+      <div class="card rounded-xl p-4 sm:p-6 text-center">
+        <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 sm:mb-2">
+          Total Gold
+        </h3>
+        <p class="text-2xl sm:text-3xl font-bold text-yellow-300" id="total-gold"></p>
+      </div>
+      <div class="card rounded-xl p-4 sm:p-6 text-center">
+        <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 sm:mb-2">
+          Total Silver
+        </h3>
+        <p class="text-2xl sm:text-3xl font-bold text-gray-300" id="total-silver"></p>
+      </div>
+      <div class="card rounded-xl p-4 sm:p-6 text-center">
+        <h3 class="text-lg sm:text-xl font-semibold text-white mb-1 sm:mb-2">
+          Total Bronze
+        </h3>
+        <p class="text-2xl sm:text-3xl font-bold text-orange-300" id="total-bronze"></p>
+      </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="card rounded-xl p-4 sm:p-6">
+        <canvas id="medalsChart" class="w-full h-64 sm:h-80"></canvas>
+      </div>
+      <div class="card rounded-xl p-4 sm:p-6">
+        <canvas id="statusChart" class="w-full h-64 sm:h-80"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sample data
+    const participants = [
+      { name: "TIZON", gold: 3, silver: 0, bronze: 0 },
+      { name: "BADARAN", gold: 3, silver: 0, bronze: 0 },
+      { name: "DELOS REYES SANTINO", gold: 3, silver: 0, bronze: 0 },
+      { name: "FERNANDEZ CHARLES", gold: 1, silver: 2, bronze: 10 },
+      { name: "OSABEL", gold: 1, silver: 2, bronze: 10 },
+      { name: "PALISOC", gold: 1, silver: 2, bronze: 5 },
+      { name: "PALATTAO", gold: 1, silver: 2, bronze: 10 }
+    ];
+
+    const goldValue = 10;
+    const silverValue = 5;
+    const bronzeValue = 1;
+
+    // Populate table
+    const tableBody = document.getElementById("table-body");
+    participants.forEach((participant) => {
+      const total =
+        participant.gold * goldValue +
+        participant.silver * silverValue +
+        participant.bronze * bronzeValue;
+      const status = total >= 30;
+      const row = document.createElement("tr");
+      row.className = "border-b border-white/10";
+      row.innerHTML = `
+                <td class="py-2 px-3 sm:py-3 sm:px-4">${participant.name}</td>
+                <td class="py-2 px-3 sm:py-3 sm:px-4 text-center text-yellow-300">${participant.gold}</td>
+                <td class="py-2 px-3 sm:py-3 sm:px-4 text-center text-gray-300">${participant.silver}</td>
+                <td class="py-2 px-3 sm:py-3 sm:px-4 text-center text-orange-300">${participant.bronze}</td>
+                <td class="py-2 px-3 sm:py-3 sm:px-4 text-center font-bold">${total}</td>
+                <td class="py-2 px-3 sm:py-3 sm:px-4 text-center text-xl">
+                    ${
+                      status
+                        ? '<i class="fas fa-check-circle text-green-500"></i>'
+                        : '<i class="fas fa-clock text-yellow-500"></i>'
+                    }
+                </td>
+            `;
+      tableBody.appendChild(row);
+    });
+
+    // Calculate totals
+    const totalParticipants = participants.length;
+    const totalGold = participants.reduce((sum, p) => sum + p.gold, 0);
+    const totalSilver = participants.reduce((sum, p) => sum + p.silver, 0);
+    const totalBronze = participants.reduce((sum, p) => sum + p.bronze, 0);
+
+    document.getElementById("total-participants").textContent = totalParticipants;
+    document.getElementById("total-gold").textContent = totalGold;
+    document.getElementById("total-silver").textContent = totalSilver;
+    document.getElementById("total-bronze").textContent = totalBronze;
+
+    // Medals Chart
+    const medalsCtx = document.getElementById("medalsChart").getContext("2d");
+    new Chart(medalsCtx, {
+      type: "bar",
+      data: {
+        labels: ["Gold", "Silver", "Bronze"],
+        datasets: [
+          {
+            label: "Total Token",
+            data: [totalGold, totalSilver, totalBronze],
+            backgroundColor: ["#fbbf24", "#d1d5db", "#fb923c"],
+            borderColor: ["#d97706", "#9ca3af", "#ea580c"],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: "Total Math Token",
+            color: "white",
+            font: { size: 18 },
+          },
+          legend: {
+            labels: {
+              color: "white",
+            },
+          },
+        },
+        scales: {
+          y: {
+            ticks: { color: "white" },
+            grid: { color: "rgba(255,255,255,0.2)" },
+            beginAtZero: true,
+          },
+          x: {
+            ticks: { color: "white" },
+            grid: { color: "rgba(255,255,255,0.2)" },
+          },
+        },
+      },
+    });
+
+    // Status Chart
+    const statusData = participants.reduce(
+      (acc, p) => {
+        const total = p.gold * 10 + p.silver * 5 + p.bronze * 1;
+        acc[total >= 30 ? "Done" : "Ongoing"]++;
+        return acc;
+      },
+      { Done: 0, Ongoing: 0 }
+    );
+
+    const statusCtx = document.getElementById("statusChart").getContext("2d");
+    new Chart(statusCtx, {
+      type: "pie",
+      data: {
+        labels: ["Done", "Ongoing"],
+        datasets: [
+          {
+            data: [statusData.Done, statusData.Ongoing],
+            backgroundColor: ["#10b981", "#eab308"],
+            borderColor: ["#047857", "#a16207"],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: "Status Distribution",
+            color: "white",
+            font: { size: 18 },
+          },
+          legend: {
+            labels: {
+              color: "white",
+            },
+          },
+        },
+      },
+    });
+  </script>
+</body>
+</html>
